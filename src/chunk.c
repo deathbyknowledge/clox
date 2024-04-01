@@ -98,15 +98,16 @@ int addConstant(Chunk* chunk, Value value) {
 
 
 int getLine(Chunk* chunk, int instIdx) {
-  int count = 0, idx = 0;
+  int count = 0;
    
-  while (true) {
+  for (int i = 0; i <= chunk->lines.count; i++) {
     int lineNum, lineCount;
-    decodeLine(chunk->lines.lines[idx], &lineNum, &lineCount);
+    decodeLine(chunk->lines.lines[i], &lineNum, &lineCount);
     if (instIdx >= count && instIdx <= (count+lineCount - 1)) {
       return lineNum;
     }
-    idx++;
     count += lineCount;
   }
+  // Should not get here
+  return -1;
 }
