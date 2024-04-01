@@ -7,13 +7,18 @@
 typedef enum {
   OP_RETURN,
   OP_CONSTANT,
+  OP_CONSTANT_LONG,
 } OpCode;
 
 typedef struct {
   int count;
   int capacity;
-  // might want to swap this to unsigned too
-  uint16_t* lines;  //(TODO: revisit encoding) [15:12]: instruciton index - [11:0]: line number 
+
+  /*
+    [15:11]: counter
+    [10:0]:  line number
+  */
+  uint16_t* lines;
 } LineCount;
 
 typedef struct {
@@ -21,8 +26,6 @@ typedef struct {
   int capacity;
   uint8_t* code;
 
-  int linesCount;
-  int linesCapacity;
   LineCount lines;
   ValueArray constants;
 } Chunk;
@@ -31,7 +34,10 @@ typedef struct {
 void initChunk(Chunk* chunk);
 void freeChunk(Chunk* chunk);
 void writeChunk(Chunk* chunk, uint8_t byte, int line);
+
 int addConstant(Chunk* chunk, Value value);
+void writeConstant(Chunk* chunk, Value value, int line);
+
 int getLine(Chunk* chunk, int inst_idx);
 
 void initLineCount(LineCount* lc);

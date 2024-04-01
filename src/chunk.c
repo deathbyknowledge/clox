@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "chunk.h"
 #include "memory.h"
@@ -94,6 +93,20 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
 int addConstant(Chunk* chunk, Value value) {
   writeValueArray(&chunk->constants, value);
   return chunk->constants.count - 1;
+}
+
+void writeConstant(Chunk* chunk, Value value, int line) {
+  int idx = addConstant(chunk, value);
+  if (idx <= 0xFF) {
+    writeChunk(chunk, OP_CONSTANT, line);
+    writeChunk(chunk, idx, line);
+  } else { // 24 bits for operand.
+    writeChunk(chunk, OP_CONSTANT_LONG, line);
+    // BE layout
+    writeChunk(chunk, (uint8_t)((idx >> 16) & 0xFF), line); // [23:16]
+    writeChunk(chunk, (uint8_t)((idx >> 8) & 0xFF), line); // [15:8]
+    writeChunk(chunk, (uint8_t)(idx & 0xFF), line); // [7:0]
+  }
 }
 
 
