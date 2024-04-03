@@ -32,7 +32,7 @@ void freeVM() {
 static InterpretResult run() {
   #define READ_BYTE() (*vm.ip++)
   #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-  #define READ_CONSTANT_LONG() (vm.chunk->constants.values[(int)(READ_BYTE() << 16) + (int)(READ_BYTE() << 8) + (int)READ_BYTE()]) // TODO: update asap
+  #define READ_CONSTANT_LONG() (vm.chunk->constants.values[(unsigned long)(READ_BYTE() << 16) + (int)(READ_BYTE() << 8) + READ_BYTE()]) // TODO: update asap
   #define BINARY_OP(op) \
     do { \
       double b = pop(); \
@@ -83,6 +83,19 @@ static InterpretResult run() {
 }
 
 InterpretResult interpret(const char* source) {
-  compile(source);
-  return INTERPRET_OK;
+  Chunk chunk;
+  initChunk(&chunk);
+
+  if (!compile(source, &chunk)) {
+    freeChunk(&chunk);
+    return INTERPRET_COMPILE_ERROR;
+  }
+
+  vm.chunk = &chunk;
+  vm.ip = vm.chunk->code;
+
+  InterpretResult result = run();
+
+  freeChunk(&chunk);
+  return result;
 }
