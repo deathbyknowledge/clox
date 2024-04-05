@@ -109,6 +109,7 @@ static TokenType checkKeyword(int start, int length, const char* rest, TokenType
 }
 
 static TokenType identifierType() {
+  printf("Scanner start char is %c\n", scanner.start[0]);
   switch (scanner.start[0]) {
     case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
     case 'c': return checkKeyword(1, 4, "lass", TOKEN_CLASS);
@@ -132,7 +133,7 @@ static TokenType identifierType() {
       if (scanner.current - scanner.start > 1) {
         switch (scanner.current[1]) { 
           case 'h': return checkKeyword(2, 2, "is", TOKEN_THIS);
-          case 'r': return checkKeyword(2, 2, "ue", TOKEN_TRUE);
+          case 'r': { TokenType type = checkKeyword(2, 2, "ue", TOKEN_TRUE); printf("inside switch %d\n", type); return type; };
         }
       }
       break;
@@ -172,6 +173,7 @@ static Token number() {
 static Token identifier() {
   while (isAlpha(peek()) || isDigit(peek())) advance();
   
+  printf("identifierType() %d\n", identifierType());
   return makeToken(identifierType());
 }
 
