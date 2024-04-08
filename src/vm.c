@@ -30,12 +30,13 @@ static bool isFalsey(Value value) {
 }
 
 static void concatenate() {
-  ObjString* a = AS_STRING(pop());
   ObjString* b = AS_STRING(pop());
+  ObjString* a = AS_STRING(pop());
+
   int length = a->length + b->length;
   char* chars = ALLOCATE(char, length + 1);
-  memcpy(chars, a, a->length);
-  memcpy(chars + a->length, b, b->length);
+  memcpy(chars, a->chars, a->length);
+  memcpy(chars + a->length, b->chars, b->length);
   chars[length] = '\0';
   
   ObjString* result = takeString(chars, length);
@@ -61,10 +62,11 @@ static void runtimeError(const char* format, ...) {
 
 void initVM() {
   resetStack();
+  vm.objects = NULL;
 }
 
 void freeVM() {
-
+  freeObjects();
 }
 
 static InterpretResult run() {
