@@ -90,23 +90,14 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
   chunk->count++;
 }
 
-uint32_t addConstant(Chunk* chunk, Value value) {
+int addConstant(Chunk* chunk, Value value) {
   writeValueArray(&chunk->constants, value);
-  // TODO: count should be uint32_t here
   return chunk->constants.count - 1;
 }
 
 void writeConstant(Chunk* chunk, uint8_t constant, int line) {
   writeChunk(chunk, OP_CONSTANT, line);
   writeChunk(chunk, constant, line);
-}
-
-void writeConstantLong(Chunk* chunk, uint32_t constant, int line) {
-  writeChunk(chunk, OP_CONSTANT_LONG, line);
-  // BE layout
-  writeChunk(chunk, (uint8_t)((constant >> 16) & 0xFF), line); // [23:16]
-  writeChunk(chunk, (uint8_t)((constant >> 8) & 0xFF), line); // [15:8]
-  writeChunk(chunk, (uint8_t)(constant & 0xFF), line); // [7:0]
 }
 
 

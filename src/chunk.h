@@ -6,17 +6,13 @@
 
 typedef enum {
   OP_CONSTANT,
-  OP_CONSTANT_LONG,
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
   OP_POP,
   OP_DEFINE_GLOBAL,
-  OP_DEFINE_GLOBAL_LONG,
   OP_GET_GLOBAL,
-  OP_GET_GLOBAL_LONG,
   OP_SET_GLOBAL,
-  OP_SET_GLOBAL_LONG, // TODO: impl
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
@@ -55,9 +51,8 @@ void initChunk(Chunk* chunk);
 void freeChunk(Chunk* chunk);
 void writeChunk(Chunk* chunk, uint8_t byte, int line);
 
-uint32_t addConstant(Chunk* chunk, Value value);
+int addConstant(Chunk* chunk, Value value);
 void writeConstant(Chunk* chunk, uint8_t constant, int line);
-void writeConstantLong(Chunk* chunk, uint32_t constant, int line);
 
 int getLine(Chunk* chunk, int inst_idx);
 

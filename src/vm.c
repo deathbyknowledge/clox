@@ -76,9 +76,7 @@ void freeVM() {
 static InterpretResult run() {
   #define READ_BYTE() (*vm.ip++)
   #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-  #define READ_CONSTANT_LONG() (vm.chunk->constants.values[(unsigned long)(READ_BYTE() << 16) + (int)(READ_BYTE() << 8) + READ_BYTE()]) // TODO: update asap
   #define READ_STRING() AS_STRING(READ_CONSTANT())
-  #define READ_STRING_LONG() AS_STRING(READ_CONSTANT_LONG())
   #define BINARY_OP(valueType, op) \
     do { \
       if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
@@ -108,23 +106,12 @@ static InterpretResult run() {
         push(constant);
         break;
       }
-      case OP_CONSTANT_LONG: {
-        Value constant = READ_CONSTANT_LONG();
-        push(constant);
-        break;
-      }
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
       case OP_POP: pop(); break;
       case OP_DEFINE_GLOBAL: {
           ObjString* name = READ_STRING();
-          tableSet(&vm.globals, name, peek(0));
-          pop();
-          break;
-      }
-      case OP_DEFINE_GLOBAL_LONG: {
-          ObjString* name = READ_STRING_LONG();
           tableSet(&vm.globals, name, peek(0));
           pop();
           break;
@@ -139,27 +126,9 @@ static InterpretResult run() {
         push(value);
         break;
       }
-      case OP_GET_GLOBAL_LONG: {
-        ObjString* name = READ_STRING_LONG();
-        Value value;
-        if (!tableGet(&vm.globals, name, &value)) {
-          runtimeError("Undefined variable '%s'.", name->chars);
-          return INTERPRET_RUNTIME_ERROR;
-        }
-        push(value);
-        break;
-      }
+      
       case OP_SET_GLOBAL: {
         ObjString* name = READ_STRING();
-        if (tableSet(&vm.globals, name, peek(0))) {
-          tableDelete(&vm.globals, name);
-          runtimeError("Undefined variable '%s'.", name->chars);
-          return INTERPRET_RUNTIME_ERROR;
-        }
-        break;
-      }
-      case OP_SET_GLOBAL_LONG: {
-        ObjString* name = READ_STRING_LONG();
         if (tableSet(&vm.globals, name, peek(0))) {
           tableDelete(&vm.globals, name);
           runtimeError("Undefined variable '%s'.", name->chars);
@@ -218,9 +187,7 @@ static InterpretResult run() {
   
   #undef READ_BYTE
   #undef READ_CONSTANT
-  #undef READ_CONSTANT_LONG
   #undef READ_STRING
-  #undef READ_STRING_LONG
   #undef BINARY_OP
 }
 

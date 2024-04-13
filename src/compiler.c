@@ -115,15 +115,18 @@ static void emitReturn() {
   emitByte(OP_RETURN);
 }
 
-static void emitConstant(Value value) {
-  uint32_t constant = addConstant(currentChunk(), value);
- 	if (constant <= UINT8_MAX) {
-		writeConstant(currentChunk(), (uint8_t)constant, parser.previous.line);
-	} else {
-		writeConstantLong(currentChunk(), constant, parser.previous.line);
-	} 
+static uint8_t makeConstant(Value value) {
+	int constant = addConstant(currentChunk(), value);
+	if (constant > UINT8_MAX) {
+		error("Too many constants in one chunk.");
+	return 0;
+	}
+	return (uint8_t)constant;
 }
 
+static void emitConstant(Value value) {
+	emitBytes(OP_CONSTANT, makeConstant(value));
+}
 
 static void endCompiler() {
   emitReturn(); 
@@ -141,7 +144,7 @@ static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
 static uint32_t identifierConstant(Token* name) {
-  return addConstant(currentChunk(), OBJ_VAL(copyString(name->start, name->length)));
+  return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
 static uint32_t parseVariable(const char* errorMessage) {
@@ -149,13 +152,8 @@ static uint32_t parseVariable(const char* errorMessage) {
   return identifierConstant(&parser.previous);
 }
 
-static void defineVariable(int global) {
-	if (global <= UINT8_MAX) {
-		emitBytes(OP_DEFINE_GLOBAL, (uint8_t)global);
-	} else {
-		emitBytes(OP_DEFINE_GLOBAL_LONG, (uint8_t)((global >> 16) & 0xFF));
-		emitBytes((uint8_t)((global >> 8) & 0xFF), (uint8_t)(global & 0xFF));
-	}
+static void defineVariable(uint8_t global) {
+	emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
 static void binary(bool canAssign) {
@@ -213,12 +211,6 @@ static void namedVariable(Token name, bool canAssign) {
 		emitBytes(OP_SET_GLOBAL, arg);
 	} else {
 		emitBytes(OP_GET_GLOBAL, arg);
-	}
-
-	if (arg <= UINT8_MAX) {
-		emitBytes(OP_GET_GLOBAL, arg);
-	} else {
-		emitBytes(OP_GET_GLOBAL_LONG, arg);
 	}
 }
 
